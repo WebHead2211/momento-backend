@@ -19,13 +19,26 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
+      required: [true, "Password is required"],
+    },
+    refreshToken: {
+      type: String,
     },
     fullName: {
       type: String,
+      required: true,
     },
     avatar: {
       type: String,
+      required: true,
+    },
+    posts: {
+      type: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Post",
+        },
+      ],
     },
     likedPosts: {
       type: [
@@ -50,6 +63,13 @@ const userSchema = new mongoose.Schema(
           type: mongoose.Schema.Types.ObjectId,
           ref: "User",
           index: true,
+        },
+      ],
+    },
+    comments: {
+      type: [
+        {
+          type: String,
         },
       ],
     },
