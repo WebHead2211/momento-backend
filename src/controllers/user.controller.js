@@ -178,4 +178,94 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   }
 });
 
-export { registerUser, loginUser, logoutUser, refreshAccessToken };
+const changeCorrectPassword = asyncHandler(async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+  const user = await User.findById(req.user?._id);
+  const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
+  if (!isPasswordCorrect) {
+    throw new ApiError(401, "Incorrect old password");
+  }
+  user.password = newPassword;
+  await user.save({ validateBeforeSave: false });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Password has been changed successfully"));
+});
+
+const getCurrentUser = asyncHandler(async (req, res) => {
+  return res
+    .status(200)
+    .json(200, req.user, "Current user fetched successfully");
+});
+
+//You will need a username as a req param
+//req.user exists because of use of auth middleware
+// const subscribe =  (req, res) => {
+//   const followUsername = req.query.username;
+//   if (!followUsername) {
+//     throw new ApiError(401, "User not found");
+//   }
+// };
+
+const newFollow = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+  const followUsername = req.query.username;
+  if (!followUsername) {
+    throw new ApiError(401, "User not found");
+  }
+  const followUser = await User.findOne({ username: followUsername });
+  if (!followUser) {
+    throw new ApiError(401, "User not found");
+  }
+  if (user.following.includes(followUser._id)) {
+    throw new ApiError(401, "You already follow this person");
+    // return res
+    //   .status(200)
+    //   .json(
+    //     new ApiResponse(200, followUser, "you are already following this user")
+    //   );
+  }
+  user.following = [...user.following, followUser._id];
+  followUser.followers = [...followUser.followers, user._id];
+  await user.save({ validateBeforeSave: false });
+  await followUser.save({ validateBeforeSave: false });
+  return res
+    .status(200)
+    .json(new ApiResponse(200, followUser, "User followed successfully"));
+});
+
+const unfollow = async (req, res) => {
+  const user = await User.findById(req.user._id);
+  const unfollowUsername = req.query.username;
+  if (!unfollowUsername) {
+    throw new ApiError(401, "User not found");
+  }
+  const unfollowUser = await User.findOne({ username: unfollowUsername });
+  if (!unfollowUser) {
+    throw new ApiError(401, "User not found");
+  }
+  if (!user.following.includes(unfollowUser._id)) {
+    throw new ApiError(401, "You do not follow this user");
+  }
+  user.following = user.following.filter((id) => !id.equals(unfollowUser._id));
+  unfollowUser.followers = unfollowUser.followers.filter(
+    (id) => !id.equals(user._id)
+  );
+  await user.save({ validateBeforeSave: false });
+  await unfollowUser.save({ validateBeforeSave: false });
+  return res
+    .status(200)
+    .json(new ApiResponse(200, null, "User unfollowed successfully"));
+};
+
+export {
+  registerUser,
+  loginUser,
+  logoutUser,
+  refreshAccessToken,
+  changeCorrectPassword,
+  getCurrentUser,
+  newFollow,
+  unfollow,
+};
