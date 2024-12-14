@@ -12,6 +12,7 @@ import {
   getUserByUsername,
   editUser,
   search,
+  followSuggestions,
 } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
@@ -33,6 +34,7 @@ userRouter.route("/refreshToken").post(refreshAccessToken);
 userRouter.route("/getUser/:id").get(getUser);
 userRouter.route("/getUsername/:username").get(getUserByUsername);
 userRouter.route("/search/:text").get(search);
+userRouter.route("/suggestions").get(verifyJWT, followSuggestions);
 
 //secured routes
 userRouter.route("/logout").post(verifyJWT, logoutUser);

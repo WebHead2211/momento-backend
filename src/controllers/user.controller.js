@@ -457,6 +457,18 @@ const search = async (req, res, next) => {
   }
 };
 
+const followSuggestions = async (req, res, next) => {
+  try {
+    const results = await User.aggregate([
+      { $match: { username: { $ne: req.user.username } } },
+      { $sample: { size: 4 } },
+    ]);
+    return res.status(200).json(new ApiResponse(200, results, "Results"));
+  } catch (error) {
+    next(error);
+  }
+};
+
 export {
   registerUser,
   loginUser,
@@ -472,4 +484,5 @@ export {
   getUpdatedFollowers,
   editUser,
   search,
+  followSuggestions,
 };
