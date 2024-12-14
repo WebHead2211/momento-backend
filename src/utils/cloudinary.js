@@ -27,4 +27,23 @@ const uploadOnCloudinary = async (localFilePath) => {
   }
 };
 
-export { uploadOnCloudinary };
+const deleteFromCloudinary = async (fileId) => {
+  try {
+    if (!fileId) {
+      console.log("Could not find local file path.");
+      return null;
+    }
+    //if Local path exists then upload the file on cloudinary
+    const response = await cloudinary.uploader.destroy(
+      fileId,
+      function (result) {
+        console.log(result);
+      }
+    );
+    return response;
+  } catch (error) {
+    return null;
+  }
+};
+
+export { uploadOnCloudinary, deleteFromCloudinary };

@@ -8,7 +8,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
-      lowercase: true,
       trim: true,
       index: true,
     },
@@ -69,16 +68,23 @@ const userSchema = new mongoose.Schema(
     comments: {
       type: [
         {
-          type: String,
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Comment",
         },
       ],
+    },
+    lastPostedAt: {
+      type: Date,
+      default: new Date(),
     },
   },
   { timestamps: true }
 );
 
 userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+  if (!this.isModified("password")) {
+    return next();
+  }
   this.password = await bcrypt.hash(this.password, 10);
   next();
 });
@@ -89,7 +95,6 @@ userSchema.methods.isPasswordCorrect = async function (password) {
 
 userSchema.methods.generateAccessToken = function () {
   return jwt.sign(
-    //payload (what info to keep)
     {
       _id: this._id,
       email: this.email,
@@ -105,7 +110,6 @@ userSchema.methods.generateAccessToken = function () {
 
 userSchema.methods.generateRefreshToken = function () {
   return jwt.sign(
-    //payload (what info to keep)
     {
       _id: this._id,
     },
